@@ -7,7 +7,6 @@ OUTPUT_FILE="server_inventory_report.csv"
 echo "Hostname,Uptime,SerialNumber,ProductModel,SSH_Status,Cron_Status" > $OUTPUT_FILE
 
 while read SERVER
-
 do
 
 echo "Connecting to $SERVER ..."
