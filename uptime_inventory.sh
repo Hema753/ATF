@@ -1,20 +1,34 @@
 #!/bin/bash
-INPUT=servers.txt
 
-OUTPUT=server_inventory.csv
+INPUT_FILE="servers.txt"
 
-echo "Hostname,Uptime,SerialNumber,ProductID" > $OUTPUT
-for SERVER in $(cat $INPUT)
+OUTPUT_FILE="server_inventory_report.csv"
+
+echo "Hostname,Uptime,SerialNumber,ProductModel,SSH_Status,Cron_Status" > $OUTPUT_FILE
+
+while read SERVER
 
 do
+
+echo "Connecting to $SERVER ..."
+
+ 
+HOSTNAME=$(ssh $SERVER "hostname" 2>/dev/null)
+
 UPTIME=$(ssh $SERVER "uptime -p" 2>/dev/null)
 
-SERIAL=$(ssh $SERVER "dmidecode -s system-serial-number" 2>/dev/null)
+SERIAL=$(ssh $SERVER "sudo dmidecode -s system-serial-number" 2>/dev/null)
 
-PRODUCT=$(ssh $SERVER "dmidecode -s system-product-name" 2>/dev/null)
+PRODUCT=$(ssh $SERVER "sudo dmidecode -s system-product-name" 2>/dev/null)
 
-echo "$SERVER,$UPTIME,$SERIAL,$PRODUCT" >> $OUTPUT
+SSH_STATUS=$(ssh $SERVER "systemctl is-active sshd" 2>/dev/null)
 
-done
+CRON_STATUS=$(ssh $SERVER "systemctl is-active crond" 2>/dev/null)
 
-echo "Inventory Generated: $OUTPUT"
+echo "$HOSTNAME,$UPTIME,$SERIAL,$PRODUCT,$SSH_STATUS,$CRON_STATUS" >> $OUTPUT_FILE
+
+done < $INPUT_FILE
+
+echo "Report Generated Successfully"
+
+echo "Output File: $OUTPUT_FILE"
